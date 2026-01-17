@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:jobmarket}
+    username: ${DB_USERNAME:jobmarket}
+    password: ${DB_PASSWORD:jobmarket}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    locations: classpath:db/migration
+
+logging:
+  level:
+    com.jobmarket: INFO
+    org.hibernate.SQL: WARN

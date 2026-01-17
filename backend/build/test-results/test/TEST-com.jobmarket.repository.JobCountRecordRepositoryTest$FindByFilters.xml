@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="findByFilters" tests="0" skipped="0" failures="0" errors="0" timestamp="1970-01-01T00:00:00" hostname="Jacek-Gajewskis-Mac.local" time="0.0">
+  <properties/>
+  <system-out><![CDATA[2026-01-16T20:28:09.201+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters]: FindByFilters does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-16T20:28:09.204+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

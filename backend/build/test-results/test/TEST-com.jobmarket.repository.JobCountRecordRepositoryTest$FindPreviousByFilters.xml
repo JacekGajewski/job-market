@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="findPreviousByFilters" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:08" hostname="Jacek-Gajewskis-Mac.local" time="0.462">
+  <properties/>
+  <testcase name="should respect all filters when finding previous" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters" time="0.426"/>
+  <testcase name="should return NULL experience level record when filter is null - critical null handling" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters" time="0.006"/>
+  <testcase name="should return the record immediately before given timestamp" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters" time="0.008"/>
+  <testcase name="should return empty when no previous record exists" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters" time="0.006"/>
+  <testcase name="should return NULL salary record when filter is null - critical null handling" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters" time="0.005"/>
+  <testcase name="should NOT return records at or after the given timestamp" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters" time="0.006"/>
+  <system-out><![CDATA[20:28:06.857 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters]: FindPreviousByFilters does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+20:28:06.864 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindPreviousByFilters
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.1)
+
+2026-01-16T20:28:07.025+01:00  INFO 49587 --- [job-market] [    Test worker] c.j.r.JobCountRecordRepositoryTest       : Starting JobCountRecordRepositoryTest using Java 21.0.4 with PID 49587 (started by gajewskij in /Users/gajewskij/Projects/job-market/backend)
+2026-01-16T20:28:07.026+01:00 DEBUG 49587 --- [job-market] [    Test worker] c.j.r.JobCountRecordRepositoryTest       : Running with Spring Boot v3.4.1, Spring v6.2.1
+2026-01-16T20:28:07.026+01:00  INFO 49587 --- [job-market] [    Test worker] c.j.r.JobCountRecordRepositoryTest       : The following 1 profile is active: "dev"
+2026-01-16T20:28:07.245+01:00  INFO 49587 --- [job-market] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-16T20:28:07.323+01:00  INFO 49587 --- [job-market] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 74 ms. Found 3 JPA repository interfaces.
+2026-01-16T20:28:07.351+01:00  INFO 49587 --- [job-market] [    Test worker] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
+2026-01-16T20:28:07.430+01:00  INFO 49587 --- [job-market] [    Test worker] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:dab17027-f620-4408-a1c3-99cf81031a06;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2026-01-16T20:28:07.574+01:00  INFO 49587 --- [job-market] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:h2:mem:dab17027-f620-4408-a1c3-99cf81031a06 (H2 2.3)
+2026-01-16T20:28:07.577+01:00  WARN 49587 --- [job-market] [    Test worker] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: H2 2.3.232 is newer than this version of Flyway and support has not been tested. The latest supported version of H2 is 2.2.224.
+2026-01-16T20:28:07.586+01:00  INFO 49587 --- [job-market] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "PUBLIC"."flyway_schema_history" does not exist yet
+2026-01-16T20:28:07.587+01:00  INFO 49587 --- [job-market] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.006s)
+2026-01-16T20:28:07.590+01:00  INFO 49587 --- [job-market] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "PUBLIC"."flyway_schema_history" ...
+2026-01-16T20:28:07.604+01:00  INFO 49587 --- [job-market] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": << Empty Schema >>
+2026-01-16T20:28:07.610+01:00  INFO 49587 --- [job-market] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "1 - init schema"
+2026-01-16T20:28:07.627+01:00  INFO 49587 --- [job-market] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "PUBLIC", now at version v1 (execution time 00:00.010s)
+2026-01-16T20:28:07.665+01:00  INFO 49587 --- [job-market] [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-16T20:28:07.684+01:00  INFO 49587 --- [job-market] [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.4.Final
+2026-01-16T20:28:07.696+01:00  INFO 49587 --- [job-market] [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-16T20:28:07.784+01:00  INFO 49587 --- [job-market] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-16T20:28:07.800+01:00  WARN 49587 --- [job-market] [    Test worker] org.hibernate.dialect.Dialect            : HHH000511: The 2.3.232 version for [org.hibernate.dialect.PostgreSQLDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 12.0.0. Check the community dialects project for available legacy versions.
+2026-01-16T20:28:07.802+01:00  WARN 49587 --- [job-market] [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-16T20:28:07.806+01:00  INFO 49587 --- [job-market] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory$EmbeddedDataSourceProxy@1169fdfd']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-01-16T20:28:08.133+01:00  INFO 49587 --- [job-market] [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-16T20:28:08.141+01:00  INFO 49587 --- [job-market] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-16T20:28:08.246+01:00  INFO 49587 --- [job-market] [    Test worker] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-16T20:28:08.690+01:00  INFO 49587 --- [job-market] [    Test worker] c.j.r.JobCountRecordRepositoryTest       : Started JobCountRecordRepositoryTest in 1.801 seconds (process running for 2.425)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at<? 
+    order by
+        jcr1_0.fetched_at desc 
+    fetch
+        first 1 rows only
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at<? 
+    order by
+        jcr1_0.fetched_at desc 
+    fetch
+        first 1 rows only
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at<? 
+    order by
+        jcr1_0.fetched_at desc 
+    fetch
+        first 1 rows only
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at<? 
+    order by
+        jcr1_0.fetched_at desc 
+    fetch
+        first 1 rows only
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at<? 
+    order by
+        jcr1_0.fetched_at desc 
+    fetch
+        first 1 rows only
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at<? 
+    order by
+        jcr1_0.fetched_at desc 
+    fetch
+        first 1 rows only
+]]></system-out>
+  <system-err><![CDATA[Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (/Users/gajewskij/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.15.11/a38b16385e867f59a641330f0362ebe742788ed8/byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

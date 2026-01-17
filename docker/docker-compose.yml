@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: job-market-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-jobmarket}
+      POSTGRES_USER: ${POSTGRES_USER:-jobmarket}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jobmarket123}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jobmarket"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - job-market-network
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: production
+    container_name: job-market-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-jobmarket}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-jobmarket}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-jobmarket123}
+      JAVA_OPTS: -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - job-market-network
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: job-market-frontend
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - job-market-network
+
+volumes:
+  postgres_data:
+
+networks:
+  job-market-network:
+    driver: bridge

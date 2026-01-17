@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Category Filtering" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:09" hostname="Jacek-Gajewskis-Mac.local" time="0.008">
+  <properties/>
+  <testcase name="should return empty list when category has no records" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$CategoryFiltering" time="0.004"/>
+  <testcase name="should return only records matching the specified category" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$CategoryFiltering" time="0.004"/>
+  <system-out><![CDATA[2026-01-16T20:28:09.527+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$CategoryFiltering]: CategoryFiltering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-16T20:28:09.528+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$CategoryFiltering
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at between ? and ? 
+    order by
+        jcr1_0.fetched_at
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    insert 
+    into
+        job_count_record
+        (category, city, count, created_at, experience_level, fetched_at, location, metric_type, record_date, salary_max, salary_min) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    select
+        jcr1_0.id,
+        jcr1_0.category,
+        jcr1_0.city,
+        jcr1_0.count,
+        jcr1_0.created_at,
+        jcr1_0.experience_level,
+        jcr1_0.fetched_at,
+        jcr1_0.location,
+        jcr1_0.metric_type,
+        jcr1_0.record_date,
+        jcr1_0.salary_max,
+        jcr1_0.salary_min 
+    from
+        job_count_record jcr1_0 
+    where
+        jcr1_0.category=? 
+        and jcr1_0.metric_type=? 
+        and jcr1_0.location=? 
+        and (
+            (
+                ? is null 
+                and jcr1_0.experience_level is null
+            ) 
+            or jcr1_0.experience_level=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_min is null
+            ) 
+            or jcr1_0.salary_min=?
+        ) 
+        and (
+            (
+                ? is null 
+                and jcr1_0.salary_max is null
+            ) 
+            or jcr1_0.salary_max=?
+        ) 
+        and jcr1_0.fetched_at between ? and ? 
+    order by
+        jcr1_0.fetched_at
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
