@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum SalaryRange {
     UNDER_25K(null, 25000, "< 25k", true),
-    RANGE_25_30K(25000, 30000, "25-30k", false),
+    RANGE_25_30K(25000, 30000, "25-30k", true),
     OVER_30K(30000, null, "> 30k", false);
 
     private static final int MAX_SALARY = 500000;
@@ -35,6 +35,21 @@ public enum SalaryRange {
         if (!requiresSubtraction) {
             return buildQueryParams();
         }
+        if (this == UNDER_25K) {
+            // For <25k: fetch >=25k to subtract from total
+            return "salary=" + max + "," + MAX_SALARY;
+        }
+        // For RANGE_25_30K: fetch >=25k
+        return "salary=" + min + "," + MAX_SALARY;
+    }
+
+    public String buildRangeSubtractionQueryParams() {
+        // For RANGE_25_30K: returns "salary=25000,500000" (>=25k)
+        return "salary=" + min + "," + MAX_SALARY;
+    }
+
+    public String buildRangeUpperBoundQueryParams() {
+        // For RANGE_25_30K: returns "salary=30000,500000" (>=30k)
         return "salary=" + max + "," + MAX_SALARY;
     }
 
