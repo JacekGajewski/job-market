@@ -1,0 +1,21 @@
+# Auto Claude data directory
+.auto-claude/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Node
+node_modules/
+.angular/
+
+# Environment
+.env
+*.log
