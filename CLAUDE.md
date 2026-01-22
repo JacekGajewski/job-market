@@ -21,6 +21,26 @@ make test                   # Run all tests
 
 See `backend/CLAUDE.md` and `frontend/CLAUDE.md` for module-specific commands.
 
+## NAS Deployment (QNAP)
+
+```bash
+# Full deploy: sync code, build images, restart containers
+make deploy-nas
+
+# Individual commands
+make sync-nas       # Sync source code to NAS
+make build-nas      # Build Docker images on NAS
+make restart-nas    # Restart containers
+make logs-nas       # View container logs
+make stop-nas       # Stop containers
+```
+
+**NAS Access:**
+- Frontend: http://192.168.50.238
+- Backend: http://192.168.50.238:8080
+
+See [DEPLOY-TO-QNAP.md](DEPLOY-TO-QNAP.md) for detailed deployment guide.
+
 ## Architecture Overview
 
 Monorepo application tracking job market trends from justjoin.it.
@@ -41,8 +61,25 @@ Monorepo application tracking job market trends from justjoin.it.
 ### Data Flow
 1. `JobCountScheduler` triggers daily (6 AM, configurable)
 2. `JustJoinItScraperService` fetches counts for all active categories and cities
-3. Records saved to `job_count_record` table with filter dimensions
-4. Frontend fetches via REST API with filter parameters and renders charts
+3. **Anomaly detection** compares with previous day - if >20% drop, retries after 3s delay
+4. Records saved to `job_count_record` table with filter dimensions
+5. Frontend fetches via REST API with filter parameters and renders charts
+
+### Anomaly Detection
+The scraper includes anomaly detection to handle stale CDN responses from justjoin.it:
+- Compares fetched count with previous day's value
+- If drop > **20%**, waits 3 seconds and retries
+- Uses the **higher value** (CDN stale data typically returns lower counts)
+- Configurable via `scraper.anomaly-detection.*` in `application.yml`
+- Logs show `source=HTML_RETRY` when retry value was used
+
+### Salary Range Scraping
+JustJoinIt doesn't support exact salary range queries reliably. The scraper uses subtraction:
+- **< 25k**: `Total - (>=25k)`
+- **25-30k**: `(>=25k) - (>=30k)`
+- **> 30k**: Direct query `salary=30000,500000`
+
+See `backend/CLAUDE.md` for implementation details and cleanup queries.
 
 ### Key Modules
 - **backend/** - Spring Boot 3.4, Java 21, JPA, Flyway migrations
@@ -118,12 +155,12 @@ POSTGRES_PASSWORD=jobmarket123
 
 ## Development URLs
 
-| Service | Dev (Docker) | Local |
-|---------|--------------|-------|
-| Frontend | http://localhost:4200 | http://localhost:4200 |
-| Backend | http://localhost:8080 | http://localhost:8080 |
-| Adminer | http://localhost:8081 | N/A |
-| Debug | localhost:5005 | N/A |
+| Service | Dev (Docker) | Local | NAS (QNAP) |
+|---------|--------------|-------|------------|
+| Frontend | http://localhost:4200 | http://localhost:4200 | http://192.168.50.238 |
+| Backend | http://localhost:8080 | http://localhost:8080 | http://192.168.50.238:8080 |
+| Adminer | http://localhost:8081 | N/A | N/A |
+| Debug | localhost:5005 | N/A | N/A |
 
 ## Java Version
 

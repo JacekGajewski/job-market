@@ -54,14 +54,26 @@ make run-backend
 make run-frontend
 ```
 
+### NAS Deployment (QNAP)
+
+```bash
+# Full deploy: sync, build, restart
+make deploy-nas
+
+# View logs
+make logs-nas
+```
+
+See [DEPLOY-TO-QNAP.md](DEPLOY-TO-QNAP.md) for detailed deployment guide.
+
 ### Access Points
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:4200 |
-| Backend API | http://localhost:8080/api |
-| Swagger UI | http://localhost:8080/swagger-ui.html |
-| Adminer | http://localhost:8081 (Docker only) |
+| Service | Local | NAS (QNAP) |
+|---------|-------|------------|
+| Frontend | http://localhost:4200 | http://192.168.50.238 |
+| Backend API | http://localhost:8080/api | http://192.168.50.238:8080/api |
+| Swagger UI | http://localhost:8080/swagger-ui.html | http://192.168.50.238:8080/swagger-ui.html |
+| Adminer | http://localhost:8081 | N/A |
 
 ## Project Structure
 
@@ -80,6 +92,7 @@ job-market/
 For detailed documentation, see:
 
 - [`CLAUDE.md`](CLAUDE.md) - Project architecture, API endpoints, configuration
+- [`DEPLOY-TO-QNAP.md`](DEPLOY-TO-QNAP.md) - NAS deployment guide
 - [`backend/CLAUDE.md`](backend/CLAUDE.md) - Backend development guide
 - [`frontend/CLAUDE.md`](frontend/CLAUDE.md) - Frontend development guide
 - [`docs/filter-combinations.md`](docs/filter-combinations.md) - Filter combinations reference

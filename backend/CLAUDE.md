@@ -49,6 +49,7 @@ This is a Spring Boot 3.4 application that tracks job market statistics by scrap
 - `JustJoinItScraperService` - Orchestrates scraping for all active categories and cities
 - `JustJoinItApiClient` - WebFlux client for JustJoinIt API (`/api/offers`)
 - `JustJoinItHtmlParser` - JSoup-based HTML parser extracting job counts from page title/meta/elements
+- `AnomalyDetectionService` - Detects stale CDN responses by comparing with previous day's count
 
 **Scheduler** (`com.jobmarket.scheduler`)
 - `JobCountScheduler` - Cron-based job that fetches and saves counts daily (6 AM by default, configurable)
@@ -71,8 +72,69 @@ This is a Spring Boot 3.4 application that tracks job market statistics by scrap
 
 Configuration is in `application.yml` with profile-specific overrides:
 - `scraper.justjoinit.*` - API/HTML URLs, timeouts, delay between requests
+- `scraper.anomaly-detection.*` - Anomaly detection settings (see below)
 - `scheduler.job-count.enabled` / `scheduler.job-count.cron` - Scheduler toggle and timing
 - `app.cors.allowed-origins` - Frontend CORS origins
+
+### Anomaly Detection
+
+Handles stale CDN responses from justjoin.it by comparing fetched counts with previous day's values.
+
+```yaml
+scraper:
+  anomaly-detection:
+    enabled: true           # Enable/disable anomaly detection
+    drop-threshold: 0.20    # 20% drop triggers retry
+    retry-delay-ms: 3000    # 3 second wait before retry
+    max-retries: 2          # Maximum retry attempts
+    minimum-city-count: 5   # Skip check if previous count < 5 (city)
+    minimum-global-count: 50 # Skip check if previous count < 50 (all-locations)
+```
+
+**How it works:**
+1. Fetches job count from justjoin.it
+2. Queries previous day's count using `findPreviousByFilters()`
+3. If drop > threshold → logs warning, waits, retries
+4. Uses higher value (CDN stale data typically returns lower counts)
+5. Logs show `source=HTML_RETRY` when retry value was used
+
+**Log examples:**
+```
+WARN: Anomaly detected for java[TOTAL] city=slask: current=2, previous=230, drop=99.1%
+INFO: Retry result for java[TOTAL] city=slask: first=2, retry=230, using=230 (source=HTML_RETRY)
+```
+
+### Salary Range Scraping Logic
+
+The JustJoinIt API doesn't reliably support exact salary range queries. To get accurate counts, different salary ranges use different strategies:
+
+| Range | Strategy | Calculation |
+|-------|----------|-------------|
+| **Any Salary** | Direct query | No salary param |
+| **< 25k** | Subtraction | `Total - (>=25k)` |
+| **25-30k** | Subtraction | `(>=25k) - (>=30k)` |
+| **> 30k** | Direct query | `salary=30000,500000` |
+
+**Why subtraction?**
+- Direct query `salary=25000,30000` returns incorrect results (same as total)
+- Queries like `salary=25000,500000` (>=25k) work reliably
+- Subtracting reliable queries gives accurate range counts
+
+**Implementation:**
+- `SalaryRange.java` - `requiresSubtraction=true` for UNDER_25K and RANGE_25_30K
+- `JustJoinItScraperService.java`:
+  - `fetchCountWithTotalSubtraction()` - for <25k: `total - (>=25k)`
+  - `fetchCountWithRangeSubtraction()` - for 25-30k: `(>=25k) - (>=30k)`
+
+**Verification:** Sum of all salary ranges should equal total (any salary):
+```
+< 25k + 25-30k + > 30k = Total
+```
+
+**Cleanup query** (if old incorrect data exists):
+```bash
+docker exec -it job-market-db psql -U jobmarket -d jobmarket -c "DELETE FROM job_count_record WHERE (salary_min IS NULL AND salary_max = 25000) OR (salary_min = 25000 AND salary_max = 30000);"
+```
 
 ### Docker
 

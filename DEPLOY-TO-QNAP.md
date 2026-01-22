@@ -1,61 +1,80 @@
-# Deploy job-market to QNAP NAS via Docker Hub
+# Deploy job-market to QNAP NAS
 
 ## Overview
-Build Docker images locally on Mac, push to Docker Hub, then deploy on QNAP Container Station using pre-built images.
+Build Docker images directly on the QNAP NAS (native AMD64) and run with Docker Compose.
 
 ## Prerequisites
-- Docker Hub account (free at https://hub.docker.com)
-- Docker Desktop running on your Mac
+- QNAP NAS with Container Station installed
+- SSH access to NAS
+- Docker Hub account (optional, for pushing images)
 
 ---
 
-## Step 1: Login to Docker Hub on Mac
+## Quick Deploy (if images already built)
 
 ```bash
-docker login
-```
-Enter your Docker Hub username and password when prompted.
-
----
-
-## Step 2: Build the images locally
-
-```bash
-cd /Users/gajewskij/Projects/job-market/docker
-docker compose build
-```
-
-This builds `backend` and `frontend` images from the Dockerfiles.
-
----
-
-## Step 3: Tag images for Docker Hub
-
-```bash
-docker tag docker-backend:latest tnt9/job-market-backend:latest
-docker tag docker-frontend:latest tnt9/job-market-frontend:latest
-```
-
-> Note: The image names might be `job-market-docker-backend` or similar. Check with `docker images` to see the exact names after building.
-
----
-
-## Step 4: Push images to Docker Hub
-
-```bash
-docker push tnt9/job-market-backend:latest
-docker push tnt9/job-market-frontend:latest
+ssh dupsram@192.168.50.238
+cd /share/CACHEDEV1_DATA/projects
+docker compose -f docker-compose.nas.yml up -d
 ```
 
 ---
 
-## Step 5: Create NAS-specific docker-compose file
+## Full Deployment Steps
 
-Create a new file `docker/docker-compose.nas.yml`:
+### Step 1: Copy Source Code to NAS
+
+From your Mac:
+```bash
+cd /Users/gajewskij/Projects/job-market
+rsync -av --exclude 'node_modules' --exclude '.git' --exclude 'build' --exclude 'target' --exclude '.gradle' . dupsram@192.168.50.238:/share/CACHEDEV1_DATA/projects/job-market-src/
+```
+
+### Step 2: Build Images on NAS
+
+SSH into NAS and build (native AMD64, no emulation issues):
+```bash
+ssh dupsram@192.168.50.238
+cd /share/CACHEDEV1_DATA/projects/job-market-src
+docker build -t tnt9/job-market-backend:latest ./backend
+docker build -t tnt9/job-market-frontend:latest ./frontend
+```
+
+### Step 3: Deploy with Docker Compose
+
+```bash
+cd /share/CACHEDEV1_DATA/projects
+docker compose -f docker-compose.nas.yml up -d
+```
+
+### Step 4: Verify Deployment
+
+```bash
+docker ps
+```
+
+Should show 3 containers running:
+- `job-market-frontend` (port 80)
+- `job-market-backend` (port 8080)
+- `job-market-db` (port 5432)
+
+---
+
+## Access URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | http://192.168.50.238 |
+| Backend API | http://192.168.50.238:8080 |
+| Swagger Docs | http://192.168.50.238:8080/swagger-ui.html |
+
+---
+
+## Docker Compose File (docker-compose.nas.yml)
+
+Located at `/share/CACHEDEV1_DATA/projects/docker-compose.nas.yml`:
 
 ```yaml
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -108,65 +127,74 @@ networks:
     driver: bridge
 ```
 
-**Note**: Images are configured to pull from Docker Hub account `tnt9`.
-
 ---
 
-## Step 6: Create data directory on NAS
+## Common Commands
 
+### View logs
 ```bash
-ssh dupsram@192.168.50.238 "mkdir -p /share/CACHEDEV1_DATA/projects/job-market-data/postgres"
+docker compose -f docker-compose.nas.yml logs -f
+docker logs job-market-backend
+docker logs job-market-frontend
 ```
 
----
-
-## Step 7: Copy the NAS compose file to QNAP
-
+### Restart services
 ```bash
-scp -O /Users/gajewskij/Projects/job-market/docker/docker-compose.nas.yml dupsram@192.168.50.238:/share/CACHEDEV1_DATA/projects/
+docker compose -f docker-compose.nas.yml restart
 ```
 
----
-
-## Step 8: Deploy in Container Station
-
-1. Open **Container Station** on your QNAP
-2. Go to **Applications** in the left menu
-3. Click **Create** button
-4. Select **"Create Application"**
-5. Either:
-   - **Browse** to `/share/CACHEDEV1_DATA/projects/` and select `docker-compose.nas.yml`
-   - Or **paste** the contents of the NAS compose file
-6. Set application name: `job-market`
-7. Click **Create**
-
-Container Station will pull the images from Docker Hub and start the containers.
-
----
-
-## Step 9: Verify deployment
-
-After deployment, access:
-- **Frontend**: http://192.168.50.238:80
-- **Backend API**: http://192.168.50.238:8080
-
-Check container status in Container Station -> Containers.
-
----
-
-## Updating the application later
-
-When you make code changes:
-
-1. Rebuild on Mac: `docker compose build`
-2. Tag new images: `docker tag ...`
-3. Push to Docker Hub: `docker push ...`
-4. On QNAP Container Station: Stop the application, then Start again (it will pull the latest images)
-
-Or use SSH:
+### Stop all services
 ```bash
-ssh dupsram@192.168.50.238
+docker compose -f docker-compose.nas.yml down
+```
+
+### Rebuild and redeploy
+```bash
+# On Mac - sync updated source
+rsync -av --exclude 'node_modules' --exclude '.git' --exclude 'build' --exclude 'target' --exclude '.gradle' . dupsram@192.168.50.238:/share/CACHEDEV1_DATA/projects/job-market-src/
+
+# On NAS - rebuild and restart
+cd /share/CACHEDEV1_DATA/projects/job-market-src
+docker build -t tnt9/job-market-backend:latest ./backend
+docker build -t tnt9/job-market-frontend:latest ./frontend
 cd /share/CACHEDEV1_DATA/projects
-docker compose -f docker-compose.nas.yml pull
 docker compose -f docker-compose.nas.yml up -d
 ```
+
+---
+
+## Troubleshooting
+
+### Container Station Storage Issue
+If you get "no space left on device" errors, Container Station may be using wrong storage:
+
+1. Check where Docker stores data:
+   ```bash
+   df /share/Container/
+   ```
+   Should show your data volume, NOT tmpfs
+
+2. If showing tmpfs, reinstall Container Station:
+   - Remove Container Station from App Center
+   - Remove the Container shared folder
+   - Reinstall and select a volume with sufficient space (e.g., Plex volume)
+
+### Platform Mismatch Error
+If you see "platform (linux/arm64) does not match host (linux/amd64)":
+- Images were built on Mac (ARM64)
+- Rebuild images directly on NAS (AMD64)
+
+### Check container health
+```bash
+docker ps
+docker inspect job-market-backend | grep -A 10 Health
+```
+
+---
+
+## NAS Details
+
+- **IP**: 192.168.50.238
+- **User**: dupsram
+- **Data Volume**: /share/CACHEDEV1_DATA (Backups) or /share/CACHEDEV2_DATA (Plex)
+- **Container Station Storage**: PlexDatabase folder on Plex volume
