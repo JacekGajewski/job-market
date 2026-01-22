@@ -10,6 +10,7 @@ import com.jobmarket.entity.TrackedCity;
 import com.jobmarket.repository.JobCountRecordRepository;
 import com.jobmarket.repository.TrackedCategoryRepository;
 import com.jobmarket.repository.TrackedCityRepository;
+import com.jobmarket.scraper.cache.ScrapeSessionCache;
 import com.jobmarket.scraper.client.JustJoinItApiClient;
 import com.jobmarket.scraper.client.JustJoinItHtmlParser;
 import com.jobmarket.scraper.dto.JobCountResult;
@@ -39,11 +40,15 @@ public class JustJoinItScraperService {
     private final TrackedCityRepository cityRepository;
     private final JobCountRecordRepository jobCountRecordRepository;
     private final ScraperConfig config;
+    private final ScrapeSessionCache cache;
 
     private final Random random = new Random();
     private final AtomicInteger requestCount = new AtomicInteger(0);
 
     public List<JobCountResult> fetchAllJobCounts() {
+        // Clear cache at the start of each batch to ensure fresh data
+        cache.clear();
+
         List<TrackedCategory> categories = categoryRepository.findByActiveTrue();
         List<TrackedCity> cities = cityRepository.findByActiveTrue();
 
@@ -77,10 +82,14 @@ public class JustJoinItScraperService {
             scrapeCategory(category, cityOptions, experienceLevels, salaryRanges, results);
         }
 
+        log.info("Batch complete. Cache size at end: {} entries", cache.size());
         return results;
     }
 
     public List<JobCountResult> fetchJobCountsForCategory(String categorySlug) {
+        // Clear cache at the start of each batch to ensure fresh data
+        cache.clear();
+
         TrackedCategory category = categoryRepository.findBySlug(categorySlug)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found: " + categorySlug));
 
@@ -114,6 +123,7 @@ public class JustJoinItScraperService {
 
         List<JobCountResult> results = new ArrayList<>();
         scrapeCategory(category, cityOptions, experienceLevels, salaryRanges, results);
+        log.info("Batch complete for category '{}'. Cache size at end: {} entries", categorySlug, cache.size());
         return results;
     }
 
