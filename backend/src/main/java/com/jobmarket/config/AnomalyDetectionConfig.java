@@ -6,41 +6,26 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "scraper.anomaly-detection")
+@ConfigurationProperties(prefix = "anomaly-detection")
 @Getter
 @Setter
 public class AnomalyDetectionConfig {
 
     /**
-     * Enable/disable anomaly detection
+     * Threshold for detecting anomalous drops in job counts.
+     * If the current count drops more than this percentage from the previous count,
+     * it's flagged as an anomaly. Default is 10% (0.10).
      */
-    private boolean enabled = true;
+    private double dropThreshold = 0.10;
 
     /**
-     * Drop percentage threshold to trigger retry (0.0 - 1.0)
-     * Default: 0.20 (20% drop triggers retry)
+     * Delay in milliseconds before retrying a fetch when an anomaly is detected.
      */
-    private double dropThreshold = 0.20;
+    private long retryDelayMs = 3000;
 
     /**
-     * Delay before retry in milliseconds
+     * Minimum count threshold below which anomaly detection is skipped.
+     * Small counts can have high percentage swings that are not anomalous.
      */
-    private int retryDelayMs = 3000;
-
-    /**
-     * Maximum retries on anomaly detection
-     */
-    private int maxRetries = 2;
-
-    /**
-     * Minimum absolute count for city-level scrapes.
-     * If previous count is below this, skip anomaly detection.
-     */
-    private int minimumCityCount = 5;
-
-    /**
-     * Minimum absolute count for all-locations scrapes.
-     * If previous count is below this, skip anomaly detection.
-     */
-    private int minimumGlobalCount = 50;
+    private int minimumCountThreshold = 10;
 }

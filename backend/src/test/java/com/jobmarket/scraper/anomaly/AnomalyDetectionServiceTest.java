@@ -4,7 +4,6 @@ import com.jobmarket.config.AnomalyDetectionConfig;
 import com.jobmarket.entity.ExperienceLevel;
 import com.jobmarket.entity.JobCountRecord;
 import com.jobmarket.entity.MetricType;
-import com.jobmarket.entity.SalaryRange;
 import com.jobmarket.repository.JobCountRecordRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,19 +33,15 @@ class AnomalyDetectionServiceTest {
     private AnomalyDetectionService service;
 
     private static final String JAVA = "java";
-    private static final String SLASK = "slask";
+    private static final String ALL_LOCATIONS = "all-locations";
 
     @BeforeEach
     void setUp() {
         config = new AnomalyDetectionConfig();
-        config.setEnabled(true);
-        config.setDropThreshold(0.20); // 20% drop threshold
+        config.setDropThreshold(0.10); // 10% threshold
         config.setRetryDelayMs(3000);
-        config.setMaxRetries(2);
-        config.setMinimumCityCount(5);
-        config.setMinimumGlobalCount(50);
-
-        service = new AnomalyDetectionService(repository, config);
+        config.setMinimumCountThreshold(10);
+        service = new AnomalyDetectionService(config, repository);
     }
 
     @Nested
@@ -54,203 +49,177 @@ class AnomalyDetectionServiceTest {
     class CheckForAnomaly {
 
         @Test
-        @DisplayName("should return no anomaly when no previous data exists")
-        void shouldReturnNoAnomalyWhenNoPreviousData() {
+        @DisplayName("should detect anomaly when drop exceeds threshold (15% drop)")
+        void shouldDetectAnomalyWhenDropExceedsThreshold() {
+            // given
+            JobCountRecord previousRecord = createRecord(100);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - 15% drop: 100 -> 85
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    85, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isTrue();
+            assertThat(result.getPreviousCount()).isEqualTo(100);
+            assertThat(result.getDropPercentage()).isEqualTo(0.15);
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.DROP_DETECTED);
+        }
+
+        @Test
+        @DisplayName("should detect anomaly when drop is just over threshold (11% drop)")
+        void shouldDetectAnomalyWhenDropJustOverThreshold() {
+            // given
+            JobCountRecord previousRecord = createRecord(100);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - 11% drop: 100 -> 89
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    89, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isTrue();
+            assertThat(result.getPreviousCount()).isEqualTo(100);
+            assertThat(result.getDropPercentage()).isEqualTo(0.11);
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.DROP_DETECTED);
+        }
+
+        @Test
+        @DisplayName("should NOT detect anomaly when drop is exactly at threshold (10% drop)")
+        void shouldNotDetectAnomalyWhenDropExactlyAtThreshold() {
+            // given
+            JobCountRecord previousRecord = createRecord(100);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - 10% drop: 100 -> 90 (exactly at threshold, should NOT trigger)
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    90, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isFalse();
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
+        }
+
+        @Test
+        @DisplayName("should NOT detect anomaly when drop is below threshold (9% drop)")
+        void shouldNotDetectAnomalyWhenDropBelowThreshold() {
+            // given
+            JobCountRecord previousRecord = createRecord(100);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - 9% drop: 100 -> 91
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    91, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isFalse();
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
+        }
+
+        @Test
+        @DisplayName("should NOT detect anomaly when count increases")
+        void shouldNotDetectAnomalyWhenCountIncreases() {
+            // given
+            JobCountRecord previousRecord = createRecord(100);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - count increased: 100 -> 120
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    120, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isFalse();
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
+        }
+
+        @Test
+        @DisplayName("should NOT detect anomaly when no previous record exists")
+        void shouldNotDetectAnomalyWhenNoPreviousRecord() {
             // given
             when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
                     .thenReturn(Optional.empty());
 
             // when
             AnomalyCheckResult result = service.checkForAnomaly(
-                    100, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isFalse();
-            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NO_PREVIOUS_DATA);
-            assertThat(result.getPreviousCount()).isNull();
-        }
-
-        @Test
-        @DisplayName("should return no anomaly when count is similar to previous (15% drop)")
-        void shouldReturnNoAnomalyWhenCountSimilar() {
-            // given - previous count 100, current count 85 (15% drop, below 20% threshold)
-            JobCountRecord previousRecord = createRecord(100);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    85, JAVA, MetricType.TOTAL, SLASK, null, null);
+                    50, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
 
             // then
             assertThat(result.isAnomalyDetected()).isFalse();
             assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
+        }
+
+        @Test
+        @DisplayName("should NOT detect anomaly when previous count is below minimum threshold")
+        void shouldNotDetectAnomalyWhenPreviousCountBelowMinimum() {
+            // given - previous count of 5 is below minimum threshold of 10
+            JobCountRecord previousRecord = createRecord(5);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - 80% drop from 5 to 1, but should skip check due to low count
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    1, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isFalse();
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
+        }
+
+        @Test
+        @DisplayName("should detect anomaly with experience level filter")
+        void shouldDetectAnomalyWithExperienceLevelFilter() {
+            // given
+            JobCountRecord previousRecord = createRecord(100);
+            when(repository.findPreviousByFilters(
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    eq(ExperienceLevel.SENIOR), any(), any(), any()))
+                    .thenReturn(Optional.of(previousRecord));
+
+            // when - 20% drop with senior filter
+            AnomalyCheckResult result = service.checkForAnomaly(
+                    80, JAVA, MetricType.TOTAL, ALL_LOCATIONS, ExperienceLevel.SENIOR, null, null);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isTrue();
             assertThat(result.getPreviousCount()).isEqualTo(100);
         }
 
         @Test
-        @DisplayName("should detect anomaly when drop exceeds threshold (25% drop)")
-        void shouldDetectAnomalyWhenDropExceedsThreshold() {
-            // given - previous count 100, current count 75 (25% drop, above 20% threshold)
-            JobCountRecord previousRecord = createRecord(100);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    75, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isTrue();
-            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.DROP_DETECTED);
-            assertThat(result.getPreviousCount()).isEqualTo(100);
-            assertThat(result.getDropPercentage()).isEqualTo(0.25);
-        }
-
-        @Test
-        @DisplayName("should detect anomaly at exact threshold (20% drop)")
-        void shouldDetectAnomalyAtExactThreshold() {
-            // given - previous count 100, current count 79 (21% drop, just above 20% threshold)
-            JobCountRecord previousRecord = createRecord(100);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    79, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isTrue();
-            assertThat(result.getDropPercentage()).isGreaterThan(0.20);
-        }
-
-        @Test
-        @DisplayName("should not detect anomaly just below threshold (19% drop)")
-        void shouldNotDetectAnomalyJustBelowThreshold() {
-            // given - previous count 100, current count 81 (19% drop, just below 20% threshold)
-            JobCountRecord previousRecord = createRecord(100);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    81, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isFalse();
-            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
-        }
-
-        @Test
-        @DisplayName("should detect massive drop (99% drop like the CDN bug)")
-        void shouldDetectMassiveDrop() {
-            // given - previous count 230, current count 2 (99% drop)
-            JobCountRecord previousRecord = createRecord(230);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    2, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isTrue();
-            assertThat(result.getDropPercentage()).isGreaterThan(0.99);
-        }
-
-        @Test
-        @DisplayName("should skip anomaly check for city when previous count below minimum (5)")
-        void shouldSkipCheckWhenCityCountBelowMinimum() {
-            // given - previous count 4, below minimumCityCount of 5
-            JobCountRecord previousRecord = createRecord(4);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when - current count 2 (50% drop, but should be skipped)
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    2, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isFalse();
-            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.BELOW_THRESHOLD);
-        }
-
-        @Test
-        @DisplayName("should skip anomaly check for all-locations when previous count below minimum (50)")
-        void shouldSkipCheckWhenGlobalCountBelowMinimum() {
-            // given - previous count 40, below minimumGlobalCount of 50
-            JobCountRecord previousRecord = createRecord(40);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq("all-locations"), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when - city=null means all-locations
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    20, JAVA, MetricType.TOTAL, null, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isFalse();
-            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.BELOW_THRESHOLD);
-        }
-
-        @Test
-        @DisplayName("should not detect anomaly when count increases")
-        void shouldNotDetectAnomalyWhenCountIncreases() {
-            // given - previous count 100, current count 150 (50% increase)
-            JobCountRecord previousRecord = createRecord(100);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(), any(), any(), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    150, JAVA, MetricType.TOTAL, SLASK, null, null);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isFalse();
-            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.NORMAL);
-        }
-
-        @Test
-        @DisplayName("should handle experience level filter correctly")
-        void shouldHandleExperienceLevelFilter() {
+        @DisplayName("should detect anomaly with salary range filter")
+        void shouldDetectAnomalyWithSalaryRangeFilter() {
             // given
-            JobCountRecord previousRecord = createRecord(100);
+            JobCountRecord previousRecord = createRecord(200);
             when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), eq(ExperienceLevel.SENIOR), any(), any(), any()))
+                    eq(JAVA), eq(MetricType.TOTAL), eq(ALL_LOCATIONS),
+                    any(), eq(25000), eq(30000), any()))
                     .thenReturn(Optional.of(previousRecord));
 
-            // when
+            // when - 25% drop with salary filter
             AnomalyCheckResult result = service.checkForAnomaly(
-                    50, JAVA, MetricType.TOTAL, SLASK, ExperienceLevel.SENIOR, null);
+                    150, JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, 25000, 30000);
 
             // then
             assertThat(result.isAnomalyDetected()).isTrue();
-        }
-
-        @Test
-        @DisplayName("should handle salary range filter correctly")
-        void shouldHandleSalaryRangeFilter() {
-            // given
-            JobCountRecord previousRecord = createRecord(100);
-            when(repository.findPreviousByFilters(
-                    eq(JAVA), eq(MetricType.TOTAL), eq(SLASK), any(),
-                    eq(SalaryRange.OVER_30K.getMin()), eq(SalaryRange.OVER_30K.getMax()), any()))
-                    .thenReturn(Optional.of(previousRecord));
-
-            // when
-            AnomalyCheckResult result = service.checkForAnomaly(
-                    50, JAVA, MetricType.TOTAL, SLASK, null, SalaryRange.OVER_30K);
-
-            // then
-            assertThat(result.isAnomalyDetected()).isTrue();
+            assertThat(result.getPreviousCount()).isEqualTo(200);
         }
     }
 
@@ -259,28 +228,28 @@ class AnomalyDetectionServiceTest {
     class ResolveCount {
 
         @Test
-        @DisplayName("should return higher count when retry is higher")
-        void shouldReturnHigherCountWhenRetryIsHigher() {
+        @DisplayName("should return the higher count when first is higher")
+        void shouldReturnFirstCountWhenHigher() {
             // when
-            int resolved = service.resolveCount(2, 230);
+            int resolved = service.resolveCount(100, 80);
 
             // then
-            assertThat(resolved).isEqualTo(230);
+            assertThat(resolved).isEqualTo(100);
         }
 
         @Test
-        @DisplayName("should return first count when first is higher")
-        void shouldReturnFirstCountWhenFirstIsHigher() {
+        @DisplayName("should return the higher count when retry is higher")
+        void shouldReturnRetryCountWhenHigher() {
             // when
-            int resolved = service.resolveCount(230, 2);
+            int resolved = service.resolveCount(80, 100);
 
             // then
-            assertThat(resolved).isEqualTo(230);
+            assertThat(resolved).isEqualTo(100);
         }
 
         @Test
-        @DisplayName("should return either when counts are equal")
-        void shouldReturnEitherWhenCountsAreEqual() {
+        @DisplayName("should return either count when both are equal")
+        void shouldReturnEitherCountWhenEqual() {
             // when
             int resolved = service.resolveCount(100, 100);
 
@@ -290,53 +259,161 @@ class AnomalyDetectionServiceTest {
     }
 
     @Nested
-    @DisplayName("isEnabled")
-    class IsEnabled {
-
-        @Test
-        @DisplayName("should return true when enabled")
-        void shouldReturnTrueWhenEnabled() {
-            // given
-            config.setEnabled(true);
-
-            // when/then
-            assertThat(service.isEnabled()).isTrue();
-        }
-
-        @Test
-        @DisplayName("should return false when disabled")
-        void shouldReturnFalseWhenDisabled() {
-            // given
-            config.setEnabled(false);
-
-            // when/then
-            assertThat(service.isEnabled()).isFalse();
-        }
-    }
-
-    @Nested
     @DisplayName("getRetryDelayMs")
     class GetRetryDelayMs {
 
         @Test
-        @DisplayName("should return configured delay")
-        void shouldReturnConfiguredDelay() {
-            // given
-            config.setRetryDelayMs(5000);
+        @DisplayName("should return configured retry delay")
+        void shouldReturnConfiguredRetryDelay() {
+            // when
+            long delay = service.getRetryDelayMs();
 
-            // when/then
-            assertThat(service.getRetryDelayMs()).isEqualTo(5000);
+            // then
+            assertThat(delay).isEqualTo(3000);
+        }
+    }
+
+    @Nested
+    @DisplayName("validateRetryResult")
+    class ValidateRetryResult {
+
+        @Test
+        @DisplayName("should return true when retry still exceeds threshold (15% drop)")
+        void shouldReturnTrueWhenRetryStillExceedsThreshold() {
+            // when - 15% drop from 100 to 85, threshold is 10%
+            boolean usePreviousValue = service.validateRetryResult(85, 100);
+
+            // then
+            assertThat(usePreviousValue).isTrue();
+        }
+
+        @Test
+        @DisplayName("should return true when retry just exceeds threshold (11% drop)")
+        void shouldReturnTrueWhenRetryJustExceedsThreshold() {
+            // when - 11% drop from 100 to 89, threshold is 10%
+            boolean usePreviousValue = service.validateRetryResult(89, 100);
+
+            // then
+            assertThat(usePreviousValue).isTrue();
+        }
+
+        @Test
+        @DisplayName("should return false when retry is within threshold (9% drop)")
+        void shouldReturnFalseWhenRetryIsWithinThreshold() {
+            // when - 9% drop from 100 to 91, threshold is 10%
+            boolean usePreviousValue = service.validateRetryResult(91, 100);
+
+            // then
+            assertThat(usePreviousValue).isFalse();
+        }
+
+        @Test
+        @DisplayName("should return false when retry exactly at threshold (10% drop)")
+        void shouldReturnFalseWhenRetryExactlyAtThreshold() {
+            // when - 10% drop from 100 to 90, exactly at threshold (not exceeding)
+            boolean usePreviousValue = service.validateRetryResult(90, 100);
+
+            // then
+            assertThat(usePreviousValue).isFalse();
+        }
+
+        @Test
+        @DisplayName("should return false when retry count increases")
+        void shouldReturnFalseWhenRetryCountIncreases() {
+            // when - retry count is higher than previous
+            boolean usePreviousValue = service.validateRetryResult(120, 100);
+
+            // then
+            assertThat(usePreviousValue).isFalse();
+        }
+
+        @Test
+        @DisplayName("should return false when previous count is zero")
+        void shouldReturnFalseWhenPreviousCountIsZero() {
+            // when - cannot calculate percentage with zero
+            boolean usePreviousValue = service.validateRetryResult(50, 0);
+
+            // then
+            assertThat(usePreviousValue).isFalse();
+        }
+
+        @Test
+        @DisplayName("should return false when previous count is negative")
+        void shouldReturnFalseWhenPreviousCountIsNegative() {
+            // when - cannot calculate percentage with negative
+            boolean usePreviousValue = service.validateRetryResult(50, -10);
+
+            // then
+            assertThat(usePreviousValue).isFalse();
+        }
+
+        @Test
+        @DisplayName("should return false when previous count is below minimum threshold")
+        void shouldReturnFalseWhenPreviousCountBelowMinimum() {
+            // given - minimum threshold is 10, previous is 5
+            // when - even with 80% drop (5 -> 1), should skip due to low count
+            boolean usePreviousValue = service.validateRetryResult(1, 5);
+
+            // then
+            assertThat(usePreviousValue).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("AnomalyCheckResult.usedPreviousValue")
+    class UsedPreviousValueResult {
+
+        @Test
+        @DisplayName("should create result with USED_PREVIOUS_VALUE reason")
+        void shouldCreateResultWithUsedPreviousValueReason() {
+            // when
+            AnomalyCheckResult result = AnomalyCheckResult.usedPreviousValue(100);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isTrue();
+            assertThat(result.getPreviousCount()).isEqualTo(100);
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.USED_PREVIOUS_VALUE);
+        }
+
+        @Test
+        @DisplayName("should mark anomaly detected when using previous value")
+        void shouldMarkAnomalyDetectedWhenUsingPreviousValue() {
+            // when
+            AnomalyCheckResult result = AnomalyCheckResult.usedPreviousValue(200);
+
+            // then
+            assertThat(result.isAnomalyDetected()).isTrue();
+            assertThat(result.getReason()).isEqualTo(AnomalyCheckResult.Reason.USED_PREVIOUS_VALUE);
+        }
+
+        @Test
+        @DisplayName("should store the previous count value")
+        void shouldStorePreviousCountValue() {
+            // when
+            AnomalyCheckResult result = AnomalyCheckResult.usedPreviousValue(500);
+
+            // then
+            assertThat(result.getPreviousCount()).isEqualTo(500);
+        }
+
+        @Test
+        @DisplayName("should have zero drop percentage by default")
+        void shouldHaveZeroDropPercentageByDefault() {
+            // when
+            AnomalyCheckResult result = AnomalyCheckResult.usedPreviousValue(100);
+
+            // then - dropPercentage is not set, defaults to 0.0
+            assertThat(result.getDropPercentage()).isEqualTo(0.0);
         }
     }
 
     private JobCountRecord createRecord(int count) {
         return JobCountRecord.builder()
                 .category(JAVA)
+                .metricType(MetricType.TOTAL)
+                .location(ALL_LOCATIONS)
                 .count(count)
                 .fetchedAt(LocalDateTime.now().minusDays(1))
-                .location(SLASK)
-                .metricType(MetricType.TOTAL)
-                .city(SLASK)
                 .recordDate(LocalDate.now().minusDays(1))
                 .build();
     }

@@ -34,6 +34,9 @@ app:
   cors:
     allowed-origins: http://localhost:4200
 
+anomaly-detection:
+  drop-threshold: 0.10
+
 scraper:
   justjoinit:
     api-base-url: https://justjoin.it/api
@@ -46,19 +49,6 @@ scraper:
     pause-every-n-requests: 15
     pause-duration-ms: 45000
     user-agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-
-  # Anomaly detection for stale CDN responses
-  anomaly-detection:
-    enabled: true
-    # Drop percentage threshold to trigger retry (0.0-1.0)
-    drop-threshold: 0.20
-    # Delay before retry in milliseconds
-    retry-delay-ms: 3000
-    # Maximum retries on anomaly detection
-    max-retries: 2
-    # Minimum count thresholds (below these, skip anomaly detection)
-    minimum-city-count: 5
-    minimum-global-count: 50
 
 scheduler:
   job-count:

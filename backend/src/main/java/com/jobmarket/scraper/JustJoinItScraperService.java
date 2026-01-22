@@ -162,51 +162,6 @@ public class JustJoinItScraperService {
         }
     }
 
-    private JobCountResult fetchCountWithAnomalyDetection(TrackedCategory category, MetricType metricType,
-                                                           String city, ExperienceLevel experienceLevel,
-                                                           SalaryRange salaryRange) throws InterruptedException {
-        // First fetch
-        JobCountResult firstResult = fetchCountForCategory(category, metricType, city, experienceLevel, salaryRange);
-        int firstCount = firstResult.getCount();
-
-        // Skip anomaly detection if disabled
-        if (!anomalyDetectionService.isEnabled()) {
-            return firstResult;
-        }
-
-        // Check for anomaly
-        AnomalyCheckResult anomalyCheck = anomalyDetectionService.checkForAnomaly(
-                firstCount, category.getSlug(), metricType, city, experienceLevel,
-                salaryRange);
-
-        if (!anomalyCheck.isAnomalyDetected()) {
-            return firstResult;
-        }
-
-        // Anomaly detected - log and retry
-        double dropPct = anomalyCheck.getDropPercentage() != null ? anomalyCheck.getDropPercentage() * 100 : 0;
-        log.warn("Anomaly detected for {}[{}] city={} exp={} salary={}: current={}, previous={}, drop={}%",
-                category.getSlug(), metricType, city, experienceLevel, salaryRange,
-                firstCount, anomalyCheck.getPreviousCount(), String.format("%.1f", dropPct));
-
-        // Wait before retry
-        Thread.sleep(anomalyDetectionService.getRetryDelayMs());
-
-        // Retry fetch
-        JobCountResult retryResult = fetchCountForCategory(category, metricType, city, experienceLevel, salaryRange);
-        int retryCount = retryResult.getCount();
-
-        // Resolve which count to use (higher value wins)
-        int resolvedCount = anomalyDetectionService.resolveCount(firstCount, retryCount);
-        String source = (resolvedCount != firstCount) ? "HTML_RETRY" : "HTML";
-
-        log.info("Retry result for {}[{}] city={}: first={}, retry={}, using={} (source={})",
-                category.getSlug(), metricType, city, firstCount, retryCount, resolvedCount, source);
-
-        return JobCountResult.success(category, metricType, city, experienceLevel, salaryRange,
-                resolvedCount, LocalDateTime.now(), source);
-    }
-
     private void applyRandomDelay() throws InterruptedException {
         int count = requestCount.incrementAndGet();
 
@@ -251,21 +206,7 @@ public class JustJoinItScraperService {
     private int fetchCountWithSubtraction(TrackedCategory category, MetricType metricType,
                                            String city, ExperienceLevel experienceLevel,
                                            SalaryRange salaryRange) {
-        if (salaryRange == SalaryRange.UNDER_25K) {
-            // Strategy 1: total - (>=25k) = <25k
-            return fetchCountWithTotalSubtraction(category, metricType, city, experienceLevel, salaryRange);
-        } else if (salaryRange == SalaryRange.RANGE_25_30K) {
-            // Strategy 2: (>=25k) - (>=30k) = 25-30k
-            return fetchCountWithRangeSubtraction(category, metricType, city, experienceLevel, salaryRange);
-        }
-
-        throw new ScraperException("Unsupported subtraction for salary range: " + salaryRange);
-    }
-
-    private int fetchCountWithTotalSubtraction(TrackedCategory category, MetricType metricType,
-                                                String city, ExperienceLevel experienceLevel,
-                                                SalaryRange salaryRange) {
-        log.info("Using total subtraction for {} (city={}, exp={}, salary={})",
+        log.info("Using subtraction approach for {} (city={}, exp={}, salary={})",
                 category.getSlug(), city, experienceLevel, salaryRange);
 
         Optional<Integer> totalCount = htmlParser.fetchCountForCategory(
@@ -289,46 +230,73 @@ public class JustJoinItScraperService {
         }
 
         int result = totalCount.get() - aboveThresholdCount.get();
-        log.info("Total subtraction result: {} - {} = {}", totalCount.get(), aboveThresholdCount.get(), result);
+        log.info("Subtraction result: {} - {} = {}", totalCount.get(), aboveThresholdCount.get(), result);
 
         return Math.max(0, result);
     }
 
-    private int fetchCountWithRangeSubtraction(TrackedCategory category, MetricType metricType,
-                                                String city, ExperienceLevel experienceLevel,
-                                                SalaryRange salaryRange) {
-        log.info("Using range subtraction for {} (city={}, exp={}, salary={})",
-                category.getSlug(), city, experienceLevel, salaryRange);
+    /**
+     * Fetches job count with anomaly detection and validation.
+     * If the first fetch shows an anomalous drop (>10% from previous day),
+     * a retry is performed. If the retry also fails validation, the previous
+     * day's value is used instead.
+     */
+    private JobCountResult fetchCountWithAnomalyDetection(TrackedCategory category, MetricType metricType,
+                                                           String city, ExperienceLevel experienceLevel,
+                                                           SalaryRange salaryRange) throws InterruptedException {
+        // First fetch
+        JobCountResult firstResult = fetchCountForCategory(category, metricType, city, experienceLevel, salaryRange);
+        int firstCount = firstResult.getCount();
 
-        // Step 1: Fetch count >= 25k
-        Optional<Integer> above25kCount = htmlParser.fetchCountWithSalaryParams(
-                category.getSlug(), metricType, city, experienceLevel,
-                salaryRange.buildRangeSubtractionQueryParams());  // salary=25000,500000
+        // Determine location for anomaly check (city or metric type location)
+        String location = city != null ? city : metricType.getLocation();
 
-        if (above25kCount.isEmpty()) {
-            throw new ScraperException("Could not fetch >=25k count for range subtraction: " + category.getName());
+        // Get salary bounds for anomaly check
+        Integer salaryMin = firstResult.getSalaryMin();
+        Integer salaryMax = firstResult.getSalaryMax();
+
+        // Check for anomaly
+        AnomalyCheckResult anomalyCheck = anomalyDetectionService.checkForAnomaly(
+                firstCount, category.getSlug(), metricType, location, experienceLevel, salaryMin, salaryMax);
+
+        if (!anomalyCheck.isAnomalyDetected()) {
+            return firstResult;
         }
 
-        try {
-            applyRandomDelay();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        // Anomaly detected - log and retry
+        log.warn("Anomaly detected for category='{}' [{}] city={} exp={} salary={}: count={}, previous={}",
+                category.getName(), metricType, city, experienceLevel, salaryRange,
+                firstCount, anomalyCheck.getPreviousCount());
+
+        Thread.sleep(anomalyDetectionService.getRetryDelayMs());
+
+        // Retry fetch
+        JobCountResult retryResult = fetchCountForCategory(category, metricType, city, experienceLevel, salaryRange);
+        int retryCount = retryResult.getCount();
+
+        // Validate retry result
+        int previousCount = anomalyCheck.getPreviousCount();
+        boolean shouldUsePreviousValue = anomalyDetectionService.validateRetryResult(retryCount, previousCount);
+
+        if (shouldUsePreviousValue) {
+            // Both attempts failed validation - use previous day's value
+            log.info("Using previous day's value for category='{}' [{}] city={} exp={} salary={}: " +
+                    "first={}, retry={}, using previous={}",
+                    category.getName(), metricType, city, experienceLevel, salaryRange,
+                    firstCount, retryCount, previousCount);
+
+            return JobCountResult.success(category, metricType, city, experienceLevel, salaryRange,
+                    previousCount, LocalDateTime.now(), "PREVIOUS_DAY");
         }
 
-        // Step 2: Fetch count >= 30k
-        Optional<Integer> above30kCount = htmlParser.fetchCountWithSalaryParams(
-                category.getSlug(), metricType, city, experienceLevel,
-                salaryRange.buildRangeUpperBoundQueryParams());  // salary=30000,500000
+        // Retry passed validation - use retry result
+        log.info("Retry result accepted for category='{}' [{}] city={} exp={} salary={}: " +
+                "first={}, retry={} (within threshold)",
+                category.getName(), metricType, city, experienceLevel, salaryRange,
+                firstCount, retryCount);
 
-        if (above30kCount.isEmpty()) {
-            throw new ScraperException("Could not fetch >=30k count for range subtraction: " + category.getName());
-        }
-
-        // Step 3: Calculate 25-30k = (>=25k) - (>=30k)
-        int result = above25kCount.get() - above30kCount.get();
-        log.info("Range subtraction result: {} - {} = {}", above25kCount.get(), above30kCount.get(), result);
-
-        return Math.max(0, result);
+        return JobCountResult.success(category, metricType, city, experienceLevel, salaryRange,
+                retryCount, LocalDateTime.now(), "HTML_RETRY");
     }
 
     @Transactional
