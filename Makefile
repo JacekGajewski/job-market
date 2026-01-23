@@ -1,5 +1,5 @@
 .PHONY: dev prod stop logs clean build test db-shell help \
-	deploy-nas sync-nas build-nas restart-nas logs-nas stop-nas
+	deploy-nas sync-nas build-nas restart-nas logs-nas stop-nas build-and-restart-nas
 
 # Default target
 help:
@@ -92,27 +92,17 @@ run-frontend:
 # NAS Deployment (QNAP)
 # =============================================================================
 
-NAS_HOST := dupsram@192.168.50.238
+NAS_HOST := qnap
 NAS_SRC := /share/CACHEDEV1_DATA/projects/job-market-src
 NAS_DEPLOY := /share/CACHEDEV1_DATA/projects
-SSH_CTRL := /tmp/ssh-nas-$(shell echo $$PPID)
 
-# SSH with connection multiplexing (reuses single connection)
-SSH_CMD = ssh -t -o ControlPath=$(SSH_CTRL) $(NAS_HOST)
-
-# Start SSH master connection (password once)
-ssh-nas-connect:
-	@echo "Connecting to NAS (enter password once)..."
-	@ssh -o ControlMaster=yes -o ControlPath=$(SSH_CTRL) -o ControlPersist=10m -fN $(NAS_HOST)
-
-# Close SSH master connection
-ssh-nas-disconnect:
-	@ssh -o ControlPath=$(SSH_CTRL) -O exit $(NAS_HOST) 2>/dev/null || true
+# SSH command (uses SSH keys)
+SSH_CMD = ssh -t $(NAS_HOST)
 
 # Sync source code to NAS
 sync-nas:
 	@echo "Syncing source code to NAS..."
-	@rsync -av --delete -e "ssh -o ControlPath=$(SSH_CTRL)" \
+	@rsync -av --delete \
 		--exclude 'node_modules' \
 		--exclude '.git' \
 		--exclude 'build' \
@@ -146,8 +136,8 @@ restart-nas:
 	@echo "Restarting containers on NAS..."
 	@ssh -t $(NAS_HOST) "export PATH=$(NAS_DOCKER_PATH):\$$PATH; cd $(NAS_DEPLOY) && sudo -E docker compose -f docker-compose.nas.yml up -d"
 
-# Full deploy: sync, build, restart (single sudo password for build+restart)
-deploy-nas: ssh-nas-connect sync-nas build-and-restart-nas ssh-nas-disconnect
+# Full deploy: sync, build, restart
+deploy-nas: sync-nas build-and-restart-nas
 	@echo ""
 	@echo "Deployment complete!"
 	@echo "Frontend: http://192.168.50.238"
