@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Parameterized Filter Combinations" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:09" hostname="Jacek-Gajewskis-Mac.local" time="0.166">
+<testsuite name="Parameterized Filter Combinations" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-01-23T12:43:04" hostname="Mac" time="0.14">
   <properties/>
-  <testcase name="All Levels + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.021"/>
-  <testcase name="All Levels + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.011"/>
-  <testcase name="All Levels + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.014"/>
-  <testcase name="All Levels + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.01"/>
-  <testcase name="Junior + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.01"/>
-  <testcase name="Junior + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.01"/>
-  <testcase name="Junior + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.01"/>
-  <testcase name="Junior + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.009"/>
+  <testcase name="All Levels + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.013"/>
+  <testcase name="All Levels + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.009"/>
+  <testcase name="All Levels + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.009"/>
+  <testcase name="All Levels + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
+  <testcase name="Junior + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
+  <testcase name="Junior + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
+  <testcase name="Junior + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.007"/>
+  <testcase name="Junior + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
   <testcase name="Mid + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
-  <testcase name="Mid + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
-  <testcase name="Mid + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.007"/>
+  <testcase name="Mid + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.009"/>
+  <testcase name="Mid + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
   <testcase name="Mid + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
-  <testcase name="Senior + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.008"/>
+  <testcase name="Senior + Any Salary" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.006"/>
   <testcase name="Senior + Under 25k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.007"/>
-  <testcase name="Senior + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.007"/>
-  <testcase name="Senior + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.007"/>
-  <system-out><![CDATA[2026-01-16T20:28:09.205+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations]: ParameterizedFilterCombinations does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-01-16T20:28:09.216+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations
+  <testcase name="Senior + 25-30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.006"/>
+  <testcase name="Senior + Over 30k" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations" time="0.006"/>
+  <system-out><![CDATA[2026-01-23T13:43:04.169+01:00  INFO 36798 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations]: ParameterizedFilterCombinations does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-23T13:43:04.171+01:00  INFO 36798 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$ParameterizedFilterCombinations
 Hibernate: 
     select
         jcr1_0.id,

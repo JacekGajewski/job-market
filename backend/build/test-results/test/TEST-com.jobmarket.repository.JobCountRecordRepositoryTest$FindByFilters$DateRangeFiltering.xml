@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Date Range Filtering" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:09" hostname="Jacek-Gajewskis-Mac.local" time="0.011">
+<testsuite name="Date Range Filtering" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-01-23T12:43:04" hostname="Mac" time="0.011">
   <properties/>
   <testcase name="should return empty when date range has no records" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering" time="0.003"/>
   <testcase name="should include records at boundary dates" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering" time="0.003"/>
   <testcase name="should return only records within date range" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering" time="0.004"/>
-  <system-out><![CDATA[2026-01-16T20:28:09.403+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering]: DateRangeFiltering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-01-16T20:28:09.405+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering
+  <system-out><![CDATA[2026-01-23T13:43:04.330+01:00  INFO 36798 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering]: DateRangeFiltering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-23T13:43:04.334+01:00  INFO 36798 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$DateRangeFiltering
 Hibernate: 
     select
         jcr1_0.id,

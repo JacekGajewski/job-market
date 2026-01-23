@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:09" hostname="Jacek-Gajewskis-Mac.local" time="0.005">
+<testsuite name="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-01-23T12:43:04" hostname="Mac" time="0.005">
   <properties/>
   <testcase name="should return records ordered by fetchedAt ascending" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering" time="0.005"/>
-  <system-out><![CDATA[2026-01-16T20:28:09.393+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering]: Ordering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-01-16T20:28:09.396+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering
+  <system-out><![CDATA[2026-01-23T13:43:04.321+01:00  INFO 36798 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering]: Ordering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-23T13:43:04.324+01:00  INFO 36798 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$Ordering
 Hibernate: 
     select
         jcr1_0.id,

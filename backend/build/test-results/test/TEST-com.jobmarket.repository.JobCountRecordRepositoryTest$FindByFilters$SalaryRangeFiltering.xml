@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Salary Range Filtering - Critical Null Handling" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:09" hostname="Jacek-Gajewskis-Mac.local" time="0.019">
+<testsuite name="Salary Range Filtering - Critical Null Handling" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-01-23T12:43:04" hostname="Mac" time="0.022">
   <properties/>
-  <testcase name="should return only RANGE_25_30K records when RANGE_25_30K filter is selected" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.003"/>
+  <testcase name="should return only RANGE_25_30K records when RANGE_25_30K filter is selected" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.002"/>
   <testcase name="should return ONLY records with NULL salary when filter is null" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.003"/>
-  <testcase name="should NOT mix null and non-null salary ranges when filter is null" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.004"/>
-  <testcase name="should return only OVER_30K records when OVER_30K filter is selected" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.004"/>
+  <testcase name="should NOT mix null and non-null salary ranges when filter is null" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.005"/>
+  <testcase name="should return only OVER_30K records when OVER_30K filter is selected" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.007"/>
   <testcase name="should return only UNDER_25K records when UNDER_25K filter is selected" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering" time="0.003"/>
-  <system-out><![CDATA[2026-01-16T20:28:09.431+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering]: SalaryRangeFiltering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-01-16T20:28:09.433+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering
+  <system-out><![CDATA[2026-01-23T13:43:04.357+01:00  INFO 36798 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering]: SalaryRangeFiltering does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-23T13:43:04.359+01:00  INFO 36798 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindByFilters$SalaryRangeFiltering
 Hibernate: 
     select
         jcr1_0.id,

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="findLatestByFilters" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-01-16T19:28:09" hostname="Jacek-Gajewskis-Mac.local" time="0.037">
+<testsuite name="findLatestByFilters" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-01-23T12:43:04" hostname="Mac" time="0.026">
   <properties/>
-  <testcase name="should return NULL experience level record when filter is null - critical null handling" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.008"/>
-  <testcase name="should return NULL salary record when filter is null - critical null handling" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.006"/>
-  <testcase name="should return empty when no records exist" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.004"/>
-  <testcase name="should return empty when filters match no records" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.004"/>
-  <testcase name="should return the most recent record only" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.006"/>
+  <testcase name="should return NULL experience level record when filter is null - critical null handling" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.005"/>
+  <testcase name="should return NULL salary record when filter is null - critical null handling" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.003"/>
+  <testcase name="should return empty when no records exist" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.002"/>
+  <testcase name="should return empty when filters match no records" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.003"/>
+  <testcase name="should return the most recent record only" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.005"/>
   <testcase name="should respect all filters when determining latest" classname="com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters" time="0.004"/>
-  <system-out><![CDATA[2026-01-16T20:28:09.159+01:00  INFO 49587 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters]: FindLatestByFilters does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-01-16T20:28:09.162+01:00  INFO 49587 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters
+  <system-out><![CDATA[2026-01-23T13:43:04.134+01:00  INFO 36798 --- [job-market] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters]: FindLatestByFilters does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-01-23T13:43:04.137+01:00  INFO 36798 --- [job-market] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.jobmarket.JobMarketApplication for test class com.jobmarket.repository.JobCountRecordRepositoryTest$FindLatestByFilters
 Hibernate: 
     select
         jcr1_0.id,
