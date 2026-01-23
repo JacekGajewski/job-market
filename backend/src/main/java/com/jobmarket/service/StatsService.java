@@ -79,14 +79,17 @@ public class StatsService {
         Integer salaryMax = salaryRange != null ? salaryRange.getMax() : null;
         String location = city != null ? city : metricType.getLocation();
 
-        JobCountRecord latest = jobCountRepository.findLatestByFilters(
-                category, metricType, location, experienceLevel, salaryMin, salaryMax)
-                .orElseThrow(() -> new NoDataFoundException(category));
+        List<JobCountRecord> records = jobCountRepository.findLatestTwoByFilters(
+                category, metricType, location, experienceLevel, salaryMin, salaryMax);
 
-        Optional<JobCountRecord> previous = jobCountRepository.findPreviousByFilters(
-                category, metricType, location, experienceLevel, salaryMin, salaryMax, latest.getFetchedAt());
+        if (records.isEmpty()) {
+            throw new NoDataFoundException(category);
+        }
 
-        return buildLatestCountDto(latest, previous.orElse(null));
+        JobCountRecord latest = records.get(0);
+        JobCountRecord previous = records.size() > 1 ? records.get(1) : null;
+
+        return buildLatestCountDto(latest, previous);
     }
 
     private void validateCategoryExists(String category) {

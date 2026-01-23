@@ -843,6 +843,225 @@ class JobCountRecordRepositoryTest {
         }
     }
 
+    @Nested
+    @DisplayName("findLatestTwoByFilters")
+    class FindLatestTwoByFilters {
+
+        @Test
+        @DisplayName("should return the two most recent records in descending order")
+        void shouldReturnTwoMostRecentRecordsInDescendingOrder() {
+            // given
+            repository.save(aRecord().fetchedAt(FIVE_DAYS_AGO).withCount(100).build());
+            repository.save(aRecord().fetchedAt(THREE_DAYS_AGO).withCount(110).build());
+            repository.save(aRecord().fetchedAt(ONE_DAY_AGO).withCount(120).build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0).getCount()).isEqualTo(120); // Most recent first
+            assertThat(results.get(1).getCount()).isEqualTo(110); // Second most recent
+        }
+
+        @Test
+        @DisplayName("should return only one record when only one exists")
+        void shouldReturnOnlyOneRecordWhenOnlyOneExists() {
+            // given
+            repository.save(aRecord().fetchedAt(ONE_DAY_AGO).withCount(100).build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0).getCount()).isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("should return empty list when no records exist")
+        void shouldReturnEmptyListWhenNoRecordsExist() {
+            // given - no records
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(results).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should respect all filters when determining latest two")
+        void shouldRespectAllFiltersDeterminingLatestTwo() {
+            // given - multiple records with different experience levels
+            repository.save(aRecord()
+                    .withExperienceLevel(ExperienceLevel.SENIOR)
+                    .fetchedAt(FIVE_DAYS_AGO)
+                    .withCount(100)
+                    .build());
+            repository.save(aRecord()
+                    .withExperienceLevel(ExperienceLevel.SENIOR)
+                    .fetchedAt(THREE_DAYS_AGO)
+                    .withCount(110)
+                    .build());
+            repository.save(aRecord()
+                    .withExperienceLevel(ExperienceLevel.SENIOR)
+                    .fetchedAt(ONE_DAY_AGO)
+                    .withCount(120)
+                    .build());
+            repository.save(aRecord()
+                    .withExperienceLevel(ExperienceLevel.JUNIOR)
+                    .fetchedAt(BASE_TIME) // Most recent but different experience level
+                    .withCount(200)
+                    .build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, ExperienceLevel.SENIOR, null, null);
+
+            // then
+            assertThat(results).hasSize(2);
+            assertThat(results).allMatch(r -> r.getExperienceLevel() == ExperienceLevel.SENIOR);
+            assertThat(results.get(0).getCount()).isEqualTo(120); // Most recent SENIOR
+            assertThat(results.get(1).getCount()).isEqualTo(110); // Second most recent SENIOR
+        }
+
+        @Test
+        @DisplayName("should return NULL experience level records when filter is null - critical null handling")
+        void shouldReturnNullExperienceLevelRecordsWhenFilterIsNull() {
+            // given
+            repository.save(aRecord().withExperienceLevel(null).fetchedAt(THREE_DAYS_AGO).withCount(500).build());
+            repository.save(aRecord().withExperienceLevel(null).fetchedAt(ONE_DAY_AGO).withCount(510).build());
+            repository.save(aRecord().withExperienceLevel(ExperienceLevel.SENIOR).fetchedAt(BASE_TIME).withCount(50).build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(results).hasSize(2);
+            assertThat(results).allMatch(r -> r.getExperienceLevel() == null);
+            assertThat(results.get(0).getCount()).isEqualTo(510); // Most recent null exp
+            assertThat(results.get(1).getCount()).isEqualTo(500); // Second most recent null exp
+        }
+
+        @Test
+        @DisplayName("should return NULL salary records when filter is null - critical null handling")
+        void shouldReturnNullSalaryRecordsWhenFilterIsNull() {
+            // given
+            repository.save(aRecord().withSalaryRange(null).fetchedAt(THREE_DAYS_AGO).withCount(500).build());
+            repository.save(aRecord().withSalaryRange(null).fetchedAt(ONE_DAY_AGO).withCount(510).build());
+            repository.save(aRecord().withSalaryRange(SalaryRange.OVER_30K).fetchedAt(BASE_TIME).withCount(50).build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(results).hasSize(2);
+            assertThat(results).allMatch(r -> r.getSalaryMin() == null && r.getSalaryMax() == null);
+            assertThat(results.get(0).getCount()).isEqualTo(510); // Most recent null salary
+            assertThat(results.get(1).getCount()).isEqualTo(500); // Second most recent null salary
+        }
+
+        @Test
+        @DisplayName("should return empty when filters match no records")
+        void shouldReturnEmptyWhenFiltersMatchNoRecords() {
+            // given
+            repository.save(aRecord().withExperienceLevel(ExperienceLevel.JUNIOR).build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, ExperienceLevel.SENIOR, null, null);
+
+            // then
+            assertThat(results).isEmpty();
+        }
+
+        @Test
+        @DisplayName("should handle all filter combinations correctly")
+        void shouldHandleAllFilterCombinationsCorrectly() {
+            // given - create records with specific filter combination
+            repository.save(aRecord()
+                    .withCategory(JAVA)
+                    .withMetricType(MetricType.TOTAL)
+                    .withLocation(WROCLAW)
+                    .withExperienceLevel(ExperienceLevel.SENIOR)
+                    .withSalaryRange(SalaryRange.OVER_30K)
+                    .fetchedAt(THREE_DAYS_AGO)
+                    .withCount(100)
+                    .build());
+            repository.save(aRecord()
+                    .withCategory(JAVA)
+                    .withMetricType(MetricType.TOTAL)
+                    .withLocation(WROCLAW)
+                    .withExperienceLevel(ExperienceLevel.SENIOR)
+                    .withSalaryRange(SalaryRange.OVER_30K)
+                    .fetchedAt(ONE_DAY_AGO)
+                    .withCount(110)
+                    .build());
+            // Non-matching records
+            repository.save(aRecord()
+                    .withCategory(JAVA)
+                    .withMetricType(MetricType.TOTAL)
+                    .withLocation(WROCLAW)
+                    .withExperienceLevel(ExperienceLevel.JUNIOR) // Different experience
+                    .withSalaryRange(SalaryRange.OVER_30K)
+                    .fetchedAt(BASE_TIME)
+                    .withCount(200)
+                    .build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, WROCLAW, ExperienceLevel.SENIOR,
+                    SalaryRange.OVER_30K.getMin(), SalaryRange.OVER_30K.getMax());
+
+            // then
+            assertThat(results).hasSize(2);
+            JobCountRecord first = results.get(0);
+            JobCountRecord second = results.get(1);
+
+            assertThat(first.getCategory()).isEqualTo(JAVA);
+            assertThat(first.getMetricType()).isEqualTo(MetricType.TOTAL);
+            assertThat(first.getLocation()).isEqualTo(WROCLAW);
+            assertThat(first.getExperienceLevel()).isEqualTo(ExperienceLevel.SENIOR);
+            assertThat(first.getSalaryMin()).isEqualTo(SalaryRange.OVER_30K.getMin());
+            assertThat(first.getSalaryMax()).isEqualTo(SalaryRange.OVER_30K.getMax());
+            assertThat(first.getCount()).isEqualTo(110);
+
+            assertThat(second.getCategory()).isEqualTo(JAVA);
+            assertThat(second.getMetricType()).isEqualTo(MetricType.TOTAL);
+            assertThat(second.getLocation()).isEqualTo(WROCLAW);
+            assertThat(second.getExperienceLevel()).isEqualTo(ExperienceLevel.SENIOR);
+            assertThat(second.getSalaryMin()).isEqualTo(SalaryRange.OVER_30K.getMin());
+            assertThat(second.getSalaryMax()).isEqualTo(SalaryRange.OVER_30K.getMax());
+            assertThat(second.getCount()).isEqualTo(100);
+        }
+
+        @Test
+        @DisplayName("should limit results to exactly two records when more exist")
+        void shouldLimitResultsToExactlyTwoRecordsWhenMoreExist() {
+            // given - save 5 records with same filters
+            repository.save(aRecord().fetchedAt(TEN_DAYS_AGO).withCount(100).build());
+            repository.save(aRecord().fetchedAt(FIVE_DAYS_AGO).withCount(110).build());
+            repository.save(aRecord().fetchedAt(THREE_DAYS_AGO).withCount(120).build());
+            repository.save(aRecord().fetchedAt(TWO_DAYS_AGO).withCount(130).build());
+            repository.save(aRecord().fetchedAt(ONE_DAY_AGO).withCount(140).build());
+
+            // when
+            List<JobCountRecord> results = repository.findLatestTwoByFilters(
+                    JAVA, MetricType.TOTAL, ALL_LOCATIONS, null, null, null);
+
+            // then
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0).getCount()).isEqualTo(140); // Most recent
+            assertThat(results.get(1).getCount()).isEqualTo(130); // Second most recent
+        }
+    }
+
     // Method source for parameterized tests - all 16 filter combinations
     static Stream<Arguments> filterCombinations() {
         return Stream.of(
