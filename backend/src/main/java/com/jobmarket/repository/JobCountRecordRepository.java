@@ -115,6 +115,21 @@ public interface JobCountRecordRepository extends JpaRepository<JobCountRecord, 
 
     @Query("SELECT j FROM JobCountRecord j WHERE j.category = :category " +
            "AND j.metricType = :metricType " +
+           "AND j.location = :location " +
+           "AND ((:experienceLevel IS NULL AND j.experienceLevel IS NULL) OR j.experienceLevel = :experienceLevel) " +
+           "AND ((:salaryMin IS NULL AND j.salaryMin IS NULL) OR j.salaryMin = :salaryMin) " +
+           "AND ((:salaryMax IS NULL AND j.salaryMax IS NULL) OR j.salaryMax = :salaryMax) " +
+           "ORDER BY j.fetchedAt DESC LIMIT 2")
+    List<JobCountRecord> findLatestTwoByFilters(
+        @Param("category") String category,
+        @Param("metricType") MetricType metricType,
+        @Param("location") String location,
+        @Param("experienceLevel") ExperienceLevel experienceLevel,
+        @Param("salaryMin") Integer salaryMin,
+        @Param("salaryMax") Integer salaryMax);
+
+    @Query("SELECT j FROM JobCountRecord j WHERE j.category = :category " +
+           "AND j.metricType = :metricType " +
            "AND ((:city IS NULL AND j.city IS NULL) OR j.city = :city) " +
            "AND ((:experienceLevel IS NULL AND j.experienceLevel IS NULL) OR j.experienceLevel = :experienceLevel) " +
            "AND ((:salaryMin IS NULL AND j.salaryMin IS NULL) OR j.salaryMin = :salaryMin) " +
